@@ -4,6 +4,7 @@ var express = require('express');
 var app = express();
 var path = require('path');
 var publicPath = path.resolve(__dirname, "public");
+var Twitter = require('twitter');
 
 var client = new Twitter({
   consumer_key: process.env.TWITTER_CONSUMER_KEY,
@@ -15,14 +16,19 @@ var client = new Twitter({
 app.use(express.static(publicPath));
 app.set('view engine', 'hbs');
 
-client.stream('statuses/filter', {track: 'election'},  function(stream) {
+var search = client.stream('statuses/filter', {track: 'election'},  function(stream) {
   stream.on('data', function(tweet) {
     console.log(tweet.text);
   });
 
+  stream.on('error', function(error) {
+    console.log(error);
+  });
+});
+
 
 app.get('/', function(req,res){
-  res.render('home', {});
+  res.render('home', search);
 });
 app.post('/', function(req,res){
   search = req.body.search;
